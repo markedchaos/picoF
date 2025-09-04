@@ -32,5 +32,10 @@ static inline uint32_t registry_count(void) {
 static inline const ProgramEntry* registry_entry(uint32_t idx) {
     return &__start_prog_registry[idx];
 }
+// --- Added for program-aware input mapping ---
+#include "input/input.h" // for ProgramID enum
+
+void registry_set_active_program(ProgramID p);
+ProgramID current_program_id(void);
 
 #endif // REGISTRY_H
