@@ -39,26 +39,28 @@ int main(void) {
     hardware_init();
     gfx_init(&disp);
     input_init();
-
     draw_menu();
 
     while (true) {
-        input_update();
+    uint32_t now = to_ms_since_boot(get_absolute_time());
+    input_update(now);
 
-        if (input_pressed(BTN_LEFT)) {
-            selected = (selected - 1 + registry_count()) % registry_count();
-            draw_menu();
-        }
-        if (input_pressed(BTN_RIGHT)) {
-            selected = (selected + 1) % registry_count();
-            draw_menu();
-        }
-        if (input_pressed(BTN_A)) {
-            registry_entry(selected)->run();
-            draw_menu();
-        }
+    if (action_pressed(ACTION_MENU_UP)) {
+        selected = (selected - 1 + registry_count()) % registry_count();
+        draw_menu();
+    }
+    if (action_pressed(ACTION_MENU_DOWN)) {
+        selected = (selected + 1) % registry_count();
+        draw_menu();
+    }
+    if (action_pressed(ACTION_MENU_SELECT)) {
+        registry_entry(selected)->run();
+        draw_menu();
     }
 }
+
+}
+
 
 
 
