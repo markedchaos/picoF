@@ -209,11 +209,12 @@ void oled_present_mono_1bpp(const uint8_t *buf) {
     // Fast path: exact 128x64 copy
     if (display.width == 128 && display.height == 64) {
         memcpy(display.buf, buf, 1024);
-        ssd1306_show(&display);
+        ssd1306_show(&disp);
         return;
     }
 
     // TODO: clipped blit path if needed for other sizes
 }
+
 
 
