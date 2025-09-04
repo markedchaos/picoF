@@ -22,7 +22,7 @@ REGISTER_PROGRAM(dino, "Dino", NULL);
 //#define BTN_DUCK    9
 
 // ===== Display =====
-static ssd1306_t disp;
+//static ssd1306_t disp;
 
 // ===== Game tuning =====
 #define OLED_W 128
@@ -387,5 +387,6 @@ void run_dino(void) {
         }
     }
 }
+
 
 
