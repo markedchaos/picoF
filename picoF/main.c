@@ -5,7 +5,7 @@
 #include "registry/registry.h"
 #include "hardware_init.h"
 
-ssd1306_t display;
+//ssd1306_t display;
 
 static int selected = 0;
 
@@ -59,5 +59,6 @@ int main(void) {
         }
     }
 }
+
 
 
