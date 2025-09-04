@@ -1,7 +1,7 @@
 #include <string.h>
 
 #include "gfx.h"
-
+#include "hardware_init.h"
 
 
 static ssd1306_t* G = NULL;
@@ -201,20 +201,21 @@ void gfx_text5x7(int x, int y, const char* str, bool on) {
 #include "ssd1306/ssd1306.h"
 
 // Use the display instance from main.c
-extern ssd1306_t display;
+//extern ssd1306_t display;
 
 void oled_present_mono_1bpp(const uint8_t *buf) {
     if (!buf) return;
 
     // Fast path: exact 128x64 copy
-    if (display.width == 128 && display.height == 64) {
-        memcpy(display.buf, buf, 1024);
+    if (disp.width == 128 && disp.height == 64) {
+        memcpy(disp.buf, buf, 1024);
         ssd1306_show(&disp);
         return;
     }
 
     // TODO: clipped blit path if needed for other sizes
 }
+
 
 
 
