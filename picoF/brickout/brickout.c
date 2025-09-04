@@ -6,6 +6,7 @@
 #include "hardware/gpio.h"
 #include "ssd1306.h"
 #include "registry.h"
+#include "hardware_init.h"
 //static ssd1306_t disp;
 #include "ssd1306_compat.h"
 
@@ -224,4 +225,5 @@ void run_brickout(void) {
 }
 
 REGISTER_PROGRAM(brickout, "Brick-Out", NULL);
+
 
