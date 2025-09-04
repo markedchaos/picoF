@@ -28,6 +28,7 @@ set(SOURCES
     main.c
 
     # Shared modules
+    hardware/hardware_init.c
     gfx/gfx.c
     input/input.c
     registry/registry.c
@@ -53,6 +54,7 @@ add_executable(${PROJECT_NAME}
 # Program folders are NOT added, so includes must be prefixed (e.g., "animationB/frames0.h")
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
+    hardware
     gfx
     input
     registry
@@ -74,3 +76,4 @@ pico_enable_stdio_uart(${PROJECT_NAME} 0)
 
 # ---- Create UF2, bin, and hex files ----
 pico_add_extra_outputs(${PROJECT_NAME})
+
