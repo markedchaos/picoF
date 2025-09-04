@@ -1,35 +1,46 @@
-#ifndef INPUT_H
-#define INPUT_H
-
+#pragma once
 #include <stdbool.h>
 #include <stdint.h>
 
-// Logical button IDs
+// Logical actions
 typedef enum {
-    BTN_UP,
-    BTN_DOWN,
-    BTN_LEFT,
-    BTN_RIGHT,
-    BTN_A,
-    BTN_B,
-    BTN_COUNT
-} ButtonId;
+    ACTION_NONE = 0,
+    ACTION_MENU_UP,
+    ACTION_MENU_DOWN,
+    ACTION_MENU_SELECT,
+    ACTION_PADDLE_LEFT,
+    ACTION_PADDLE_RIGHT,
+    ACTION_LAUNCH,
+    ACTION_JUMP,
+    ACTION_DUCK,
+    ACTION_RESTART,
+    ACTION_MAX_
+} Action;
 
-// Initialize GPIOs and state tracking
+typedef enum {
+    PROGRAM_MENU = 0,
+    PROGRAM_BRICKOUT,
+    PROGRAM_DINO,
+    PROGRAM_ANIMATION,
+    PROGRAM_MAX_
+} ProgramID;
+
+// Provided by your launcher (stub for now)
+ProgramID current_program_id(void);
+
+// Init/update
 void input_init(void);
+void input_update(uint32_t now_ms);
 
-// Call once per frame/tick to update button states
-void input_update(void);
+// Physical button queries
+bool input_pressed(int idx);
+bool input_released(int idx);
+bool input_held(int idx);
 
-// Query functions
-bool input_pressed(ButtonId btn);   // true on press edge
-bool input_held(ButtonId btn);      // true while held
-bool input_released(ButtonId btn);  // true on release edge
+// Logical action queries
+bool action_pressed(Action a);
+bool action_released(Action a);
+bool action_held(Action a);
 
-// Exit gesture checks
-bool input_exit_requested(void);    // 2s hold
-bool input_fail_safe(void);         // 5s hold
-bool input_exit_combo_active(void);
-
-
-#endif
+// Universal exit combo
+bool exit_combo_triggered(void);
