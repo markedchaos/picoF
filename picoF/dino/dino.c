@@ -8,17 +8,18 @@
 #include "ssd1306.h"
 #include "gfx.h"
 #include "registry.h"
+#include "hardware_init.h"
 
 REGISTER_PROGRAM(dino, "Dino", NULL);
 
-// ===== Pins =====
-#define I2C_PORT i2c1
-#define SDA_PIN  26
-#define SCL_PIN  27
+// ===== Pins ===== Now currently live in hardware/hardware_config.h
+//#define I2C_PORT i2c1
+//#define SDA_PIN  26
+//#define SCL_PIN  27
 
-#define BTN_RESTART 7
-#define BTN_JUMP    8
-#define BTN_DUCK    9
+//#define BTN_RESTART 7
+//#define BTN_JUMP    8
+//#define BTN_DUCK    9
 
 // ===== Display =====
 static ssd1306_t disp;
@@ -385,3 +386,4 @@ void run_dino(void) {
         }
     }
 }
+
