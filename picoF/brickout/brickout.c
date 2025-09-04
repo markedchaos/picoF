@@ -3,12 +3,11 @@
 #include <string.h>
 #include <math.h>
 #include "pico/stdlib.h"
-#include "hardware/gpio.h"
 #include "ssd1306.h"
 #include "registry.h"
 #include "hardware_init.h"
-//static ssd1306_t disp;
 #include "ssd1306_compat.h"
+#include "input/input.h"
 
 #define SCREEN_W 128
 #define SCREEN_H 64
@@ -21,12 +20,6 @@
 #define BRICK_ROWS 3
 #define MAX_LEVEL 3
 #define I2C_PORT i2c1
-
-
-// Input buttons (adjust to your wiring)-no longer used
-//#define BTN_LEFT 14
-//#define BTN_RIGHT 15
-//#define BTN_EXIT 16
 
 typedef struct {
     int x, y;
@@ -41,15 +34,15 @@ static int score;
 static int level;
 static bool running;
 
-static void draw_paddle() {
+static void draw_paddle(void) {
     ssd1306_fill_rect(paddle_x, SCREEN_H - 6, PADDLE_W, PADDLE_H, 1);
 }
 
-static void draw_ball() {
+static void draw_ball(void) {
     ssd1306_fill_rect(ball_x, ball_y, BALL_SIZE, BALL_SIZE, 1);
 }
 
-static void draw_bricks() {
+static void draw_bricks(void) {
     for (int r = 0; r < BRICK_ROWS; r++) {
         for (int c = 0; c < BRICK_COLS; c++) {
             if (bricks[r][c].alive) {
@@ -59,7 +52,7 @@ static void draw_bricks() {
     }
 }
 
-static void init_bricks() {
+static void init_bricks(void) {
     for (int r = 0; r < BRICK_ROWS; r++) {
         for (int c = 0; c < BRICK_COLS; c++) {
             bricks[r][c].x = c * BRICK_W;
@@ -69,7 +62,7 @@ static void init_bricks() {
     }
 }
 
-static void reset_ball_paddle() {
+static void reset_ball_paddle(void) {
     paddle_x = (SCREEN_W - PADDLE_W) / 2;
     ball_x = SCREEN_W / 2;
     ball_y = SCREEN_H / 2;
@@ -78,19 +71,30 @@ static void reset_ball_paddle() {
 }
 
 static void draw_center_text(const char *text, int y) {
-    int w = strlen(text) * 6;
+    int w = (int)strlen(text) * 6;
     ssd1306_draw_string((SCREEN_W - w) / 2, y, text, 1, 0);
 }
 
-static void wait_for_button() {
-    while (true) {
-        if (action_pressed(ACTION_PADDLE_LEFT) || action_pressed(ACTION_PADDLE_RIGHT) || action_pressed(ACTION_LAUNCH)) break;
+static void wait_for_button(void) {
+    for (;;) {
+        uint32_t now = to_ms_since_boot(get_absolute_time());
+        input_update(now);
+
+        // Any Brickout-relevant press dismisses: Left, Middle(Launch), Right
+        if (action_pressed(ACTION_PADDLE_LEFT) ||
+            action_pressed(ACTION_LAUNCH) ||
+            action_pressed(ACTION_PADDLE_RIGHT)) {
+            break;
+        }
+        // Optional: universal exit combo can skip this screen too
+        if (exit_combo_triggered()) break;
+
         sleep_ms(50);
     }
     sleep_ms(200);
 }
 
-static void show_level_screen() {
+static void show_level_screen(void) {
     ssd1306_clear();
     char buf[16];
     sprintf(buf, "LEVEL %d", level);
@@ -102,9 +106,12 @@ static void show_level_screen() {
 static void show_game_over(bool final_level) {
     ssd1306_clear();
     if (final_level) {
-        // Twinkling stars celebration
         absolute_time_t end_time = make_timeout_time_ms(3000);
         while (!time_reached(end_time)) {
+            uint32_t now = to_ms_since_boot(get_absolute_time());
+            input_update(now);
+            if (exit_combo_triggered()) break;
+
             ssd1306_clear();
             for (int i = 0; i < 20; i++) {
                 int x = rand() % SCREEN_W;
@@ -125,7 +132,7 @@ static void show_game_over(bool final_level) {
     }
 }
 
-static void update_ball() {
+static void update_ball(void) {
     ball_x += ball_dx;
     ball_y += ball_dy;
 
@@ -138,7 +145,7 @@ static void update_ball() {
         ball_x + BALL_SIZE >= paddle_x &&
         ball_x <= paddle_x + PADDLE_W) {
         ball_dy = -ball_dy;
-        // Add some horizontal variation
+        // angle tweak
         if (ball_x < paddle_x + PADDLE_W / 3) ball_dx = -1;
         else if (ball_x > paddle_x + 2 * PADDLE_W / 3) ball_dx = 1;
     }
@@ -160,21 +167,26 @@ static void update_ball() {
     }
 }
 
-static bool bricks_remaining() {
+static bool bricks_remaining(void) {
     for (int r = 0; r < BRICK_ROWS; r++)
         for (int c = 0; c < BRICK_COLS; c++)
             if (bricks[r][c].alive) return true;
     return false;
 }
 
-static void handle_input() {
-    if (action_held(ACTION_PADDLE_LEFT) && paddle_x > 0) paddle_x -= 2;
-    if (action_held(ACTION_PADDLE_RIGHT) && paddle_x < SCREEN_W - PADDLE_W) paddle_x += 2;
-    if (exit_combo_triggered()) running = false;
-
+static void handle_input(void) {
+    if (action_held(ACTION_PADDLE_LEFT) && paddle_x > 0) {
+        paddle_x -= 2;
+    }
+    if (action_held(ACTION_PADDLE_RIGHT) && paddle_x < SCREEN_W - PADDLE_W) {
+        paddle_x += 2;
+    }
+    if (exit_combo_triggered()) {
+        running = false; // universal exit to menu (Left+Right hold)
+    }
 }
 
-static void game_loop() {
+static void game_loop(void) {
     running = true;
     score = 0;
     level = 1;
@@ -185,6 +197,9 @@ static void game_loop() {
         show_level_screen();
 
         while (running) {
+            uint32_t now = to_ms_since_boot(get_absolute_time());
+            input_update(now);
+
             handle_input();
             update_ball();
 
@@ -211,8 +226,6 @@ static void game_loop() {
 }
 
 void run_brickout(void) {
-
-    
     ssd1306_init(&disp, I2C_PORT, 0x3C, SCREEN_W, SCREEN_H);
 
     ssd1306_clear();
@@ -223,7 +236,5 @@ void run_brickout(void) {
     game_loop();
 }
 
+// Keep your existing registry macro style
 REGISTER_PROGRAM(brickout, "Brick-Out", NULL);
-
-
-
