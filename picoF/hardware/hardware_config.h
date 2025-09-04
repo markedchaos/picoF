@@ -1,0 +1,17 @@
+#ifndef HARDWARE_CONFIG_H
+#define HARDWARE_CONFIG_H
+
+#include "hardware/i2c.h"
+
+// I²C config
+#define I2C_PORT i2c1
+#define SDA_PIN 26
+#define SCL_PIN 27
+#define I2C_BAUD 400000
+
+// Button pins
+#define BTN_RESTART 7
+#define BTN_JUMP    8
+#define BTN_DUCK    9
+
+#endif
