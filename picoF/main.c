@@ -42,24 +42,27 @@ int main(void) {
     draw_menu();
 
     while (true) {
-    uint32_t now = to_ms_since_boot(get_absolute_time());
-    input_update(now);
+        uint32_t now = to_ms_since_boot(get_absolute_time());
+        input_update(now);
 
-    if (action_pressed(ACTION_MENU_UP)) {
-        selected = (selected - 1 + registry_count()) % registry_count();
-        draw_menu();
+        if (action_pressed(ACTION_MENU_UP)) {
+            selected = (selected - 1 + registry_count()) % registry_count();
+            draw_menu();
+        }
+        if (action_pressed(ACTION_MENU_DOWN)) {
+            selected = (selected + 1) % registry_count();
+            draw_menu();
+        }
+        if (action_pressed(ACTION_MENU_SELECT)) {
+            registry_set_active_program((ProgramID)selected);
+            registry_entry(selected)->run();
+            draw_menu();
+        }
+
     }
-    if (action_pressed(ACTION_MENU_DOWN)) {
-        selected = (selected + 1) % registry_count();
-        draw_menu();
-    }
-    if (action_pressed(ACTION_MENU_SELECT)) {
-        registry_entry(selected)->run();
-        draw_menu();
-    }
+
 }
 
-}
 
 
 
