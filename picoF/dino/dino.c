@@ -308,20 +308,21 @@ static void reset_game(void) {
 }
 
 void run_dino(void) {
-    stdio_init_all();
-    i2c_init(I2C_PORT, 400 * 1000);
-    gpio_set_function(SDA_PIN, GPIO_FUNC_I2C);
-    gpio_set_function(SCL_PIN, GPIO_FUNC_I2C);
-    gpio_pull_up(SDA_PIN);
-    gpio_pull_up(SCL_PIN);
+//    stdio_init_all();
+//    i2c_init(I2C_PORT, 400 * 1000);
+//    gpio_set_function(SDA_PIN, GPIO_FUNC_I2C);
+//    gpio_set_function(SCL_PIN, GPIO_FUNC_I2C);
+//    gpio_pull_up(SDA_PIN);
+//    gpio_pull_up(SCL_PIN);
 
-    gpio_init(BTN_JUMP); gpio_set_dir(BTN_JUMP, GPIO_IN); gpio_pull_down(BTN_JUMP);
-    gpio_init(BTN_DUCK); gpio_set_dir(BTN_DUCK, GPIO_IN); gpio_pull_down(BTN_DUCK);
-    gpio_init(BTN_RESTART); gpio_set_dir(BTN_RESTART, GPIO_IN); gpio_pull_down(BTN_RESTART);
+//    gpio_init(BTN_JUMP); gpio_set_dir(BTN_JUMP, GPIO_IN); gpio_pull_down(BTN_JUMP);
+//    gpio_init(BTN_DUCK); gpio_set_dir(BTN_DUCK, GPIO_IN); gpio_pull_down(BTN_DUCK);
+//    gpio_init(BTN_RESTART); gpio_set_dir(BTN_RESTART, GPIO_IN); gpio_pull_down(BTN_RESTART);
 
 //    disp.external_vcc = false;
-//    ssd1306_init(&disp, OLED_W, OLED_H, 0x3C, I2C_PORT);
-    ssd1306_init(&disp, I2C_PORT, 0x3C, OLED_W, OLED_H);
+//old-    ssd1306_init(&disp, OLED_W, OLED_H, 0x3C, I2C_PORT);
+//    ssd1306_init(&disp, I2C_PORT, 0x3C, OLED_W, OLED_H);
+    hardware_init();
     gfx_init(&disp);
 
     reset_game();
@@ -386,4 +387,5 @@ void run_dino(void) {
         }
     }
 }
+
 
