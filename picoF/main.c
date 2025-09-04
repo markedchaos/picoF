@@ -37,7 +37,7 @@ int main(void) {
 //    sleep_ms(1000); // leave it up for a second
     // ---------------------------------------------------
     hardware_init();
-    gfx_init(&display);
+    gfx_init(&disp);
     input_init();
 
     draw_menu();
@@ -59,4 +59,5 @@ int main(void) {
         }
     }
 }
+
 
