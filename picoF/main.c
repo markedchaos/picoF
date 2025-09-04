@@ -3,6 +3,7 @@
 #include "gfx/gfx.h"
 #include "input/input.h"
 #include "registry/registry.h"
+#include "hardware_init.h"
 
 ssd1306_t display;
 
@@ -27,15 +28,15 @@ static void draw_menu(void) {
 
 int main(void) {
     stdio_init_all();
-    ssd1306_init(&display, i2c1, 0x3c, 128, 64);
+//    ssd1306_init(&display, i2c1, 0x3c, 128, 64);
     
     // --- TEST DRAW: prove the panel works before gfx ---
-    ssd1306_clear(&display);
-    ssd1306_draw_string(&display, 0, 0, "BOOT", 1); // 1 = ON pixels
-    ssd1306_show(&display);
-    sleep_ms(1000); // leave it up for a second
+//    ssd1306_clear(&display);
+//    ssd1306_draw_string(&display, 0, 0, "BOOT", 1); // 1 = ON pixels
+//    ssd1306_show(&display);
+//    sleep_ms(1000); // leave it up for a second
     // ---------------------------------------------------
-    
+    hardware_init();
     gfx_init(&display);
     input_init();
 
@@ -58,3 +59,4 @@ int main(void) {
         }
     }
 }
+
