@@ -23,10 +23,10 @@
 #define I2C_PORT i2c1
 
 
-// Input buttons (adjust to your wiring)
-#define BTN_LEFT 14
-#define BTN_RIGHT 15
-#define BTN_EXIT 16
+// Input buttons (adjust to your wiring)-no longer used
+//#define BTN_LEFT 14
+//#define BTN_RIGHT 15
+//#define BTN_EXIT 16
 
 typedef struct {
     int x, y;
@@ -84,7 +84,7 @@ static void draw_center_text(const char *text, int y) {
 
 static void wait_for_button() {
     while (true) {
-        if (!gpio_get(BTN_LEFT) || !gpio_get(BTN_RIGHT) || !gpio_get(BTN_EXIT)) break;
+        if (action_pressed(ACTION_PADDLE_LEFT) || action_pressed(ACTION_PADDLE_RIGHT) || action_pressed(ACTION_LAUNCH)) break;
         sleep_ms(50);
     }
     sleep_ms(200);
@@ -168,9 +168,10 @@ static bool bricks_remaining() {
 }
 
 static void handle_input() {
-    if (!gpio_get(BTN_LEFT) && paddle_x > 0) paddle_x -= 2;
-    if (!gpio_get(BTN_RIGHT) && paddle_x < SCREEN_W - PADDLE_W) paddle_x += 2;
-    if (!gpio_get(BTN_EXIT)) running = false;
+    if (action_held(ACTION_PADDLE_LEFT) && paddle_x > 0) paddle_x -= 2;
+    if (action_held(ACTION_PADDLE_RIGHT) && paddle_x < SCREEN_W - PADDLE_W) paddle_x += 2;
+    if (exit_combo_triggered()) running = false;
+
 }
 
 static void game_loop() {
@@ -210,9 +211,7 @@ static void game_loop() {
 }
 
 void run_brickout(void) {
-    gpio_init(BTN_LEFT); gpio_set_dir(BTN_LEFT, GPIO_IN); gpio_pull_up(BTN_LEFT);
-    gpio_init(BTN_RIGHT); gpio_set_dir(BTN_RIGHT, GPIO_IN); gpio_pull_up(BTN_RIGHT);
-    gpio_init(BTN_EXIT); gpio_set_dir(BTN_EXIT, GPIO_IN); gpio_pull_up(BTN_EXIT);
+
     
     ssd1306_init(&disp, I2C_PORT, 0x3C, SCREEN_W, SCREEN_H);
 
@@ -225,5 +224,6 @@ void run_brickout(void) {
 }
 
 REGISTER_PROGRAM(brickout, "Brick-Out", NULL);
+
 
 
