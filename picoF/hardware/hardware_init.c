@@ -14,7 +14,7 @@ void hardware_init(void) {
     gpio_set_function(SCL_PIN, GPIO_FUNC_I2C);
     gpio_pull_up(SDA_PIN);
     gpio_pull_up(SCL_PIN);
-
+/*
     // Buttons
     gpio_init(BTN_JUMP);
     gpio_set_dir(BTN_JUMP, GPIO_IN);
@@ -27,7 +27,8 @@ void hardware_init(void) {
     gpio_init(BTN_RESTART);
     gpio_set_dir(BTN_RESTART, GPIO_IN);
     gpio_pull_down(BTN_RESTART);
-
+*/
     // Display
     ssd1306_init(&disp, I2C_PORT, 0x3C, 128, 64);
 }
+
