@@ -9,6 +9,7 @@
 #include "gfx.h"
 #include "registry.h"
 #include "hardware_init.h"
+#include "input/input.h"
 
 REGISTER_PROGRAM(dino, "Dino", NULL);
 
@@ -387,6 +388,7 @@ void run_dino(void) {
         }
     }
 }
+
 
 
 
