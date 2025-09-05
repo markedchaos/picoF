@@ -1,5 +1,5 @@
 // Chrome Dino
-// Buttons: GP8 jump, GP9 duck (hold), GP7 restart
+// Left = Duck, Middle = Restart, Right = Jump
 
 #include <stdio.h>
 #include <string.h>
@@ -13,19 +13,7 @@
 
 REGISTER_PROGRAM(dino, "Dino", NULL);
 
-// ===== Pins ===== Now currently live in hardware/hardware_config.h
-//#define I2C_PORT i2c1
-//#define SDA_PIN  26
-//#define SCL_PIN  27
-
-//#define BTN_RESTART 7
-//#define BTN_JUMP    8
-//#define BTN_DUCK    9
-
 // ===== Display =====
-//static ssd1306_t disp;
-
-// ===== Game tuning =====
 #define OLED_W 128
 #define OLED_H  64
 #define FRAME_MS        33    // ~30 FPS
@@ -35,25 +23,15 @@ REGISTER_PROGRAM(dino, "Dino", NULL);
 #define JUMP_VEL       (-10)
 #define INIT_SPEED_X     3
 #define MAX_SPEED_X      7
-#define BIRD_UNLOCK     250   // unlock pterodactyl after this score
+#define BIRD_UNLOCK     250
 #define ANIM_MS          90
-
-// ===== Button handling =====
-typedef struct { bool prev; bool cur; uint pin; } btn_t;
-static btn_t b_jump    = {.prev=true,.cur=true,.pin=BTN_JUMP};
-static btn_t b_duck    = {.prev=true,.cur=true,.pin=BTN_DUCK};
-static btn_t b_restart = {.prev=true,.cur=true,.pin=BTN_RESTART};
-
-static inline void btn_read(btn_t* b) { b->prev = b->cur; b->cur = gpio_get(b->pin); } // pull-ups: 1=idle
-static inline bool pressed(const btn_t* b) { return (b->prev == false) && (b->cur == true); }
-static inline bool held(const btn_t* b) { return b->cur == true; }
 
 // ===== RNG =====
 static uint32_t rng_state = 0xA2C2B3D5u;
 static inline uint32_t xr() { uint32_t x=rng_state; x^=x<<13; x^=x>>17; x^=x<<5; return rng_state=x; }
 static inline int rr(int a,int b) { uint32_t r=xr(); int span=(b-a+1); return a + (int)(r % (uint32_t)span); }
 
-// ===== Sprites (rows of '.' and '#') =====
+// ===== Sprites =====
 // Dino run 16x16
 static const char* DINO_RUN_A[16] = {
 "................",
@@ -237,7 +215,6 @@ static bool aabb(int ax,int ay,int aw,int ah,int bx,int by,int bw,int bh){
     return (ax < bx + bw) && (ax + aw > bx)
     && (ay < by + bh) && (ay + ah > by);
 }
-
 static bool dino_hit(const obstacle_t* o) {
     int dw, dh, dy;
     if (!jumping && ducking) {
@@ -247,7 +224,6 @@ static bool dino_hit(const obstacle_t* o) {
     }
     return aabb(DINO_X, dy, dw, dh, o->x, o->y - o->h, o->w, o->h);
 }
-
 static void update_obstacles(void) {
     for (int i = 0; i < MAX_OBS; i++) {
         if (obs[i].active) {
@@ -309,20 +285,6 @@ static void reset_game(void) {
 }
 
 void run_dino(void) {
-//    stdio_init_all();
-//    i2c_init(I2C_PORT, 400 * 1000);
-//    gpio_set_function(SDA_PIN, GPIO_FUNC_I2C);
-//    gpio_set_function(SCL_PIN, GPIO_FUNC_I2C);
-//    gpio_pull_up(SDA_PIN);
-//    gpio_pull_up(SCL_PIN);
-
-//    gpio_init(BTN_JUMP); gpio_set_dir(BTN_JUMP, GPIO_IN); gpio_pull_down(BTN_JUMP);
-//    gpio_init(BTN_DUCK); gpio_set_dir(BTN_DUCK, GPIO_IN); gpio_pull_down(BTN_DUCK);
-//    gpio_init(BTN_RESTART); gpio_set_dir(BTN_RESTART, GPIO_IN); gpio_pull_down(BTN_RESTART);
-
-//    disp.external_vcc = false;
-//old-    ssd1306_init(&disp, OLED_W, OLED_H, 0x3C, I2C_PORT);
-//    ssd1306_init(&disp, I2C_PORT, 0x3C, OLED_W, OLED_H);
     hardware_init();
     gfx_init(&disp);
 
@@ -336,18 +298,31 @@ void run_dino(void) {
         t_ms += FRAME_MS;
         anim_t += FRAME_MS;
 
-        btn_read(&b_jump);
-        btn_read(&b_duck);
-        btn_read(&b_restart);
+        // New input layer timing + universal exit combo
+        uint32_t now = to_ms_since_boot(get_absolute_time());
+        input_update(now);
+        if (exit_combo_triggered()) {
+            return; // Left+Right hold → back to menu
+        }
 
         if (!game_over) {
-            if (pressed(&b_jump) && !jumping) { jumping = true; vel_y = JUMP_VEL; ducking = false; }
-            ducking = held(&b_duck) && !jumping;
+            // Right button = Jump (edge)
+            if (action_pressed(ACTION_JUMP) && !jumping) {
+                jumping = true;
+                vel_y = JUMP_VEL;
+                ducking = false;
+            }
+            // Left button = Duck (hold)
+            ducking = action_held(ACTION_DUCK) && !jumping;
 
             if (jumping) {
                 dino_y += vel_y;
                 vel_y += GRAVITY;
-                if (dino_y >= GROUND_Y) { dino_y = GROUND_Y; vel_y = 0; jumping = false; }
+                if (dino_y >= GROUND_Y) {
+                    dino_y = GROUND_Y;
+                    vel_y = 0;
+                    jumping = false;
+                }
             }
 
             update_obstacles();
@@ -372,6 +347,7 @@ void run_dino(void) {
             draw_scores();
             gfx_show();
         } else {
+            // Game over screen
             gfx_clear();
             draw_ground();
             draw_dino(anim_t);
@@ -381,14 +357,11 @@ void run_dino(void) {
             gfx_text5x7(25, 38, "PRESS RESTART", true);
             gfx_show();
 
-            if (held(&b_restart)) {
+            // Middle button = Restart (hold)
+            if (action_held(ACTION_RESTART)) {
                 reset_game();
                 sleep_ms(150);
             }
         }
     }
 }
-
-
-
-
