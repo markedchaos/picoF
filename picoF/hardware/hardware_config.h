@@ -10,8 +10,9 @@
 #define I2C_BAUD 400000
 
 // Button pins
-#define BTN_RESTART 7
-#define BTN_JUMP    8
-#define BTN_DUCK    9
+#define BTN0 7
+#define BTN1    8
+#define BTN2    9
 
 #endif
+
