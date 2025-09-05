@@ -11,8 +11,9 @@
 
 // Button pins
 #define BTN0 7
-#define BTN1    8
-#define BTN2    9
+#define BTN1 8
+#define BTN2 9
 
 #endif
+
 
